@@ -1,17 +1,66 @@
 
 import java.awt.Color;
 import java.awt.GridLayout;
+import java.io.IOException;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 public class GUI extends JFrame {
 
+    private String nomeJogador;
+    private ClienteRemote JogadorChat;
+    InterfaceServidor objRemoto;
     private SquarePanel[][] board = new SquarePanel[8][8];
     private int selectedX = -1;
     private int selectedY = -1;
 
-    public GUI() {
+    GUI() {
         initComponents();
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        nomeJogador = JOptionPane.showInputDialog("Nome: ");
+
+        try {
+
+            JogadorChat = new ClienteRemote(this, txtArea);
+
+            //Referência para o Registry no host, porto 1099
+            Registry reg = LocateRegistry.getRegistry("localhost", 1099);
+
+            //Obter referência remota com o nome "Temperatura"
+            objRemoto = (InterfaceServidor) reg.lookup("chess");
+
+            // Login do cliente de consulta
+            Jogador jogador = new Jogador(nomeJogador, JogadorChat);
+            objRemoto.login(jogador);
+        } catch (RemoteException ex) {
+            System.out.println(ex);
+            JOptionPane.showMessageDialog(this,
+                    "Remote Exception.",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+        } catch (IOException e) {
+            System.out.println(e);
+            JOptionPane.showMessageDialog(this,
+                    "Excepção de E/S.",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+        } catch (NumberFormatException e) {
+            System.out.println(e);
+            JOptionPane.showMessageDialog(this,
+                    "Porto: Formato de numeração errado.",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+        } catch (NotBoundException ex) {
+            System.out.println(ex);
+            Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
         chessPanel.setLayout(new GridLayout(8, 8));
         SquarePanel.loadPieceImages();
@@ -27,41 +76,7 @@ public class GUI extends JFrame {
             }
         }
 
-        board[7][0].setPiece(0, 3);
-        board[7][1].setPiece(0, 1);
-        board[7][2].setPiece(0, 2);
-        board[7][3].setPiece(0, 4);
-        board[7][4].setPiece(0, 5);
-        board[7][5].setPiece(0, 2);
-        board[7][6].setPiece(0, 1);
-        board[7][7].setPiece(0, 3);
-
-        board[6][0].setPiece(0, 0);
-        board[6][1].setPiece(0, 0);
-        board[6][2].setPiece(0, 0);
-        board[6][3].setPiece(0, 0);
-        board[6][4].setPiece(0, 0);
-        board[6][5].setPiece(0, 0);
-        board[6][6].setPiece(0, 0);
-        board[6][7].setPiece(0, 0);
-
-        board[0][0].setPiece(1, 3);
-        board[0][1].setPiece(1, 1);
-        board[0][2].setPiece(1, 2);
-        board[0][3].setPiece(1, 4);
-        board[0][4].setPiece(1, 5);
-        board[0][5].setPiece(1, 2);
-        board[0][6].setPiece(1, 1);
-        board[0][7].setPiece(1, 3);
-
-        board[1][0].setPiece(1, 0);
-        board[1][1].setPiece(1, 0);
-        board[1][2].setPiece(1, 0);
-        board[1][3].setPiece(1, 0);
-        board[1][4].setPiece(1, 0);
-        board[1][5].setPiece(1, 0);
-        board[1][6].setPiece(1, 0);
-        board[1][7].setPiece(1, 0);
+        arrumarPecas();
     }
 
     /**
@@ -79,12 +94,13 @@ public class GUI extends JFrame {
         panelPieces2 = new javax.swing.JPanel();
         panelPieces1 = new javax.swing.JPanel();
         chessPanel = new javax.swing.JPanel();
-        jPanel2 = new javax.swing.JPanel();
-        jTextField1 = new javax.swing.JTextField();
+        txtMsg = new javax.swing.JTextField();
         btnEnviar = new javax.swing.JButton();
         btnAbandonarCadeira = new javax.swing.JButton();
         jPanel3 = new javax.swing.JPanel();
         jComboBox1 = new javax.swing.JComboBox<>();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        txtArea = new javax.swing.JTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -140,42 +156,34 @@ public class GUI extends JFrame {
                 .addContainerGap()
                 .addComponent(panelPieces2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(chessPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(chessPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(panelPieces1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(chessPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(chessPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(panelPieces2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(panelPieces1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
-        jPanel2.setBackground(new java.awt.Color(255, 255, 255));
-
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 340, Short.MAX_VALUE)
-        );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 88, Short.MAX_VALUE)
-        );
-
-        jTextField1.addActionListener(new java.awt.event.ActionListener() {
+        txtMsg.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField1ActionPerformed(evt);
+                txtMsgActionPerformed(evt);
             }
         });
 
         btnEnviar.setText("Enviar");
+        btnEnviar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnEnviarActionPerformed(evt);
+            }
+        });
 
         btnAbandonarCadeira.setText("Abandonar cadeira");
 
@@ -185,7 +193,7 @@ public class GUI extends JFrame {
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
+            .addGap(0, 344, Short.MAX_VALUE)
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -198,6 +206,11 @@ public class GUI extends JFrame {
                 jComboBox1ActionPerformed(evt);
             }
         });
+
+        txtArea.setEditable(false);
+        txtArea.setColumns(20);
+        txtArea.setRows(5);
+        jScrollPane1.setViewportView(txtArea);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -223,14 +236,14 @@ public class GUI extends JFrame {
                                         .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                         .addComponent(btnAbandonarCadeira))
-                                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                    .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                        .addComponent(jTextField1)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(txtMsg, javax.swing.GroupLayout.PREFERRED_SIZE, 269, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(btnEnviar))
-                                    .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))))
+                                    .addComponent(jScrollPane1))))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -244,26 +257,24 @@ public class GUI extends JFrame {
                 .addComponent(btnCadeira1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(btnEnviar)
-                            .addComponent(btnAbandonarCadeira)))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jComboBox1)))
+                    .addComponent(jScrollPane1)
+                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jComboBox1)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(txtMsg, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(btnEnviar)
+                        .addComponent(btnAbandonarCadeira)))
                 .addGap(11, 11, 11))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
+    private void txtMsgActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtMsgActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField1ActionPerformed
+    }//GEN-LAST:event_txtMsgActionPerformed
 
     private void jComboBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox1ActionPerformed
         // TODO add your handling code here:
@@ -272,6 +283,20 @@ public class GUI extends JFrame {
     private void btnCadeira1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCadeira1ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_btnCadeira1ActionPerformed
+
+    private void btnEnviarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEnviarActionPerformed
+
+        try {
+            objRemoto.mensagem(this.txtMsg.getText(), nomeJogador);
+            this.txtMsg.setText("");
+        } catch (RemoteException e) {
+            JOptionPane.showMessageDialog(this,
+                    "Excepção de E/S.",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+
+        }
+    }//GEN-LAST:event_btnEnviarActionPerformed
 
     /**
      * @param args the command line arguments
@@ -317,11 +342,12 @@ public class GUI extends JFrame {
     private javax.swing.JPanel chessPanel;
     private javax.swing.JComboBox<String> jComboBox1;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
-    private javax.swing.JTextField jTextField1;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JPanel panelPieces1;
     private javax.swing.JPanel panelPieces2;
+    private javax.swing.JTextArea txtArea;
+    private javax.swing.JTextField txtMsg;
     // End of variables declaration//GEN-END:variables
 
     public void selected(int x, int y) {
@@ -332,9 +358,9 @@ public class GUI extends JFrame {
                 selectedX = x;
                 selectedY = y;
             }
-            
+
         } else { //2º clique
-            if(selectedX != x || selectedY != y){
+            if (selectedX != x || selectedY != y) {
                 board[x][y].setPiece(board[selectedX][selectedY].getPiece());
                 board[selectedX][selectedY].removePiece();
 
@@ -352,5 +378,43 @@ public class GUI extends JFrame {
                 board[i][j].removeBorder();
             }
         }
+    }
+
+    public void arrumarPecas() {
+        board[7][0].setPiece(0, 3);
+        board[7][1].setPiece(0, 1);
+        board[7][2].setPiece(0, 2);
+        board[7][3].setPiece(0, 4);
+        board[7][4].setPiece(0, 5);
+        board[7][5].setPiece(0, 2);
+        board[7][6].setPiece(0, 1);
+        board[7][7].setPiece(0, 3);
+
+        board[6][0].setPiece(0, 0);
+        board[6][1].setPiece(0, 0);
+        board[6][2].setPiece(0, 0);
+        board[6][3].setPiece(0, 0);
+        board[6][4].setPiece(0, 0);
+        board[6][5].setPiece(0, 0);
+        board[6][6].setPiece(0, 0);
+        board[6][7].setPiece(0, 0);
+
+        board[0][0].setPiece(1, 3);
+        board[0][1].setPiece(1, 1);
+        board[0][2].setPiece(1, 2);
+        board[0][3].setPiece(1, 4);
+        board[0][4].setPiece(1, 5);
+        board[0][5].setPiece(1, 2);
+        board[0][6].setPiece(1, 1);
+        board[0][7].setPiece(1, 3);
+
+        board[1][0].setPiece(1, 0);
+        board[1][1].setPiece(1, 0);
+        board[1][2].setPiece(1, 0);
+        board[1][3].setPiece(1, 0);
+        board[1][4].setPiece(1, 0);
+        board[1][5].setPiece(1, 0);
+        board[1][6].setPiece(1, 0);
+        board[1][7].setPiece(1, 0);
     }
 }

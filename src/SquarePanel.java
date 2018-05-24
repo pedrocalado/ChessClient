@@ -19,7 +19,7 @@ public class SquarePanel extends JPanel {
         row = x;
         column = y;
         cg = c;
-        setPreferredSize(new Dimension(42, 42));
+        setPreferredSize(new Dimension(55, 55));
         imageLabel = new JLabel();
         imageLabel.setPreferredSize(new Dimension(32, 32));
         add(imageLabel);
